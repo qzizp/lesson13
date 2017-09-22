@@ -1,12 +1,9 @@
 <?php
 
-  $host = "localhost";
-  $user = "root";
-  $pass = "";
-  $name = "my_todolist";
+  // Подключаемся к базе
+  require_once "db-connector.php";
 
-  $connect =  new PDO("mysql: host=$host; dbname=$name; charset=utf8", $user, $pass);
-
+  // Добавляем задачу
   if (isset($_GET["submit"]) && !empty($_GET["business"])) {
 
     $newBusiness = $_GET["business"];
@@ -16,16 +13,42 @@
     $statement->execute([$newBusiness, 0]);
   }
 
+  // Удаляем задачу
   if (isset($_GET["id"]) && ($_GET["action"]) == "delete") {
     $deleteBusiness = "DELETE FROM `tasks` WHERE `id` = ?";
     $statement = $connect->prepare($deleteBusiness);
     $statement->execute([$_GET["id"]]);
   }
 
-//$editBusiness = "UPDATE `tasks` SET `description` = ? WHERE `id` = ?";
-//$statement = $connect->prepare($editBusiness);
-//$statement->execute([$_GET["business"], $_GET["id"]]);
+  // Присваиваем задаче статус "Сделано!"
+  if (isset($_GET["id"]) && ($_GET["action"]) == "complete") {
+    $completeBusiness = "UPDATE `tasks` SET `is_done` = 1 WHERE `id` = ?";
+    $statement = $connect->prepare($completeBusiness);
+    $statement->execute([$_GET["id"]]);
+  }
 
+  // Редактируем задачу
+  if(!empty($_POST["business"]) && isset($_POST["edit"]) && isset($_GET["id"])){
+    $editTask = "UPDATE `tasks` SET `description` = ? WHERE `id`=?";
+    $statement = $connect->prepare($editTask);
+    $statement->execute([$_POST["business"], $_GET["id"]]);
+  }
+
+  // Сортируем
+  if (isset($_GET["sorting"]) && isset($_GET["sort"])) {
+
+    if ($_GET["sort"] == "by-status") {
+        $typeOfSort = "is_done";
+    } elseif ($_GET["sort"] == "by-description") {
+        $typeOfSort = "description";
+    }
+
+    $sortedTasks = "SELECT * FROM `tasks` ORDER BY $typeOfSort";
+    $statement = $connect->prepare($sortedTasks);
+    $statement->execute([$typeOfSort]);
+  }
+
+  // Делаем выборку из базы
   $todolist = "SELECT * FROM `tasks`";
   $statement = $connect->prepare($todolist);
   $statement->execute();
@@ -36,9 +59,6 @@
       $results[] = $row;
   }
 
-//echo "<pre>";
-//var_dump($results);
-//echo "</pre>";
 ?>
 
 <!DOCTYPE html>
@@ -47,15 +67,36 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=Edge">
   <link href="https://fonts.googleapis.com/css?family=PT+Serif:400,700&amp;subset=cyrillic" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="./css/font-awesome-4.7.0/font-awesome-4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="css/style.css">
   <title>Список моих дел</title>
 </head>
 <body>
 <div class="wrapper">
+  <?php if(isset($_GET['id']) && ($_GET['action']) == 'edit') :?>
+      <form method="POST" action="index.php?id=<?= $_GET["id"] ?>">
+          <input type="text" name="business" placeholder="Обновить запись" value="">
+          <input type="submit" name="edit" value="Изменить">
+      </form>
+  <?php else : ?>
+      <form action="">
+          <input type="text" name="business" placeholder="Новая задача">
+          <input type="submit" name="submit" value="Добавить задачу">
+      </form>
+  <?php endif ?>
+
     <form action="">
-        <input type="text" name="business" placeholder="Новая задача">
-        <input type="submit" name="submit" value="Добавить задачу">
+        <label for="sort">Отсортировать дела по:</label>
+            <select name="sort" id="sort">
+                <option value="by-date">По дате постановки</option>
+                <option value="by-status">По статусу выполнения</option>
+                <option value="by-description">По описанию</option>
+            </select>
+        <input type="submit" name="sorting" value="Отсортировать">
+
+
     </form>
+
     <table>
         <tr>
             <th>Задача</th>
@@ -65,12 +106,14 @@
         </tr>
       <?php foreach ($results as $row): ?>
           <tr>
-              <td><?php echo $row["description"] ?></td>
-              <td><?php echo $status = ($row['is_done'] == 0) ? 'Не выполнено' : 'Выполнено'; ?></td>
-              <td><?php echo $row["date_added"] ?></td>
-              <td><a href="?id=<?php $row["id"] ?>&action=delete">Del</a><?php echo "<pre>";
-                var_dump($row["id"]);
-                echo "</pre>";?></td>
+              <td class="task"><?= $row["description"] ?></td>
+              <td><?= $status = ($row["is_done"] == 0) ? "Не сделано" : "Сделано"; ?></td>
+              <td><?= $row["date_added"] ?></td>
+              <td class="todo-actions">
+                  <a class="complete" href="?id=<?= $row["id"] ?>&action=complete" title="Сделано!"><i class="fa fa-check-square-o" aria-hidden="true"></i></a>
+                  <a class="edit" href="?id=<?= $row["id"] ?>&action=edit" title="Изменить задачу"><i class="fa fa-pencil" aria-hidden="true"></i></a>
+                  <a class="delete" href="?id=<?= $row["id"] ?>&action=delete" title="Удалить задачу"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
+              </td>
           </tr>
 
       <?php endforeach; ?>
