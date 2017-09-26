@@ -1,0 +1,85 @@
+* {
+    box-sizing: border-box;
+    font-family: 'PT Serif', serif;
+}
+
+.clearfix::after {
+    content: "";
+    display: table;
+    clear: both;
+    z-index: 1;
+}
+
+.wrapper {
+    margin: 50px auto;
+    max-width: 700px;
+}
+
+table {
+    width: 100%;
+    margin: 5px auto;
+    border: 2px #aed216 solid;
+    border-radius: 5px;
+    border-collapse: collapse;
+}
+
+td, th {
+    padding: 10px;
+    border-bottom: 1px #7da100 dashed;
+}
+
+th {
+    background: #AED216;
+    text-align: left;
+    border-bottom: 1px #AED216 solid;
+}
+
+tr:last-child td {
+    border: none;
+}
+
+tr:first-child ~ tr:hover {
+    color: #575757;
+}
+
+.isbn {
+    width: 160px;
+    color: #a9a9a9;
+}
+
+form {
+    text-align: center;
+}
+
+input[type="text"],
+input[type="submit"] {
+    width: 100%;
+    margin-bottom: 5px;
+    padding: 10px;
+}
+
+.todo-actions {
+    width: 22%;
+}
+
+.todo-actions a {
+    margin: 0 10px;
+    color: #000;
+    font-size: 20px;
+}
+
+.delete:hover {
+    color: #c50603;
+}
+
+.complete:hover {
+    color: #aed216;
+}
+
+.edit:hover {
+    color: #d2ba20;
+}
+
+.task {
+    width: 30%;
+}

@@ -8,7 +8,7 @@
 
     $newBusiness = $_GET["business"];
 
-    $addBusiness = "INSERT INTO `tasks` (`description`, `is_done`) VALUES (?, ?)";
+    $addBusiness = "INSERT INTO `tasks` (`description`, `is_done`, `date_added`) VALUES (?, ?, NOW())";
     $statement = $connect->prepare($addBusiness);
     $statement->execute([$newBusiness, 0]);
   }
@@ -43,9 +43,15 @@
         $typeOfSort = "description";
     }
 
-    $sortedTasks = "SELECT * FROM `tasks` ORDER BY $typeOfSort";
+    $sortedTasks = "SELECT * FROM `tasks` ORDER BY $connect->quote($typeOfSort)";
+    echo "<pre>";
+    print_r($sortedTasks);
+    echo "</pre>";
     $statement = $connect->prepare($sortedTasks);
-    $statement->execute([$typeOfSort]);
+    $statement->execute();
+    echo "<pre>";
+    print_r($statement->execute());
+    echo "</pre>";
   }
 
   // Делаем выборку из базы
@@ -73,6 +79,7 @@
 </head>
 <body>
 <div class="wrapper">
+
   <?php if(isset($_GET['id']) && ($_GET['action']) == 'edit') :?>
       <form method="POST" action="index.php?id=<?= $_GET["id"] ?>">
           <input type="text" name="business" placeholder="Обновить запись" value="">
@@ -85,7 +92,7 @@
       </form>
   <?php endif ?>
 
-    <form action="">
+    <form class="sorting-business" action="">
         <label for="sort">Отсортировать дела по:</label>
             <select name="sort" id="sort">
                 <option value="by-date">По дате постановки</option>

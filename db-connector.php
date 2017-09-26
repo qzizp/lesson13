@@ -1,8 +1,8 @@
 <?php
 
   $host = "localhost";
-  $user = "root";
-  $pass = "";
+  $user = "user";
+  $pass = "pass";
   $name = "my_todolist";
 
   $connect =  new PDO("mysql: host=$host; dbname=$name; charset=utf8", $user, $pass);
